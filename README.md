@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Restaurant Management App
+Overview
+A comprehensive web application for restaurant inventory and operations management. This full-stack solution handles inventory tracking, consumption monitoring, order processing, supply chain management, and procurement requests.
+Technologies
 
-## Getting Started
+Frontend: Next.js, React, Tailwind CSS
+Backend: Next.js API Routes, TypeScript
+Database: Prisma ORM
+Authentication: Clerk
 
-First, run the development server:
+Key Features
 
-```bash
+Complete inventory and stock management
+Order processing and tracking
+Receipt management for incoming supplies
+Consumption recording with available quantity validation
+Intelligent procurement request system (automatic and manual)
+Interactive dashboard for stock status visualization
+Automatic alerts and request generation when stock falls below minimum threshold
+Intuitive interface for restaurant management
+
+Architecture
+The application uses a modern architecture based on Next.js, with API Routes for the backend and React for the frontend. The data model is managed through Prisma ORM, ensuring consistency and data integrity across components.
+Repository Structure
+
+/app - React components and pages
+/api - API endpoints for data management
+/prisma - Database schemas and migrations
+/lib - Utilities and configurations
+/components - Reusable React components
+/public - Static resources
+
+Installation and Running
+bash# Clone repository
+git clone [repository URL]
+
+# Install dependencies
+npm install
+
+# Configure database
+npx prisma migrate dev
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# Build for production
+npm run build
+npm start
+Contributors
+This project is developed by:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+[Your Name]
+[Colleague 1 Name]
+[Colleague 2 Name]
+[Colleague 3 Name]
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+License
+This project is private and intended for educational purposes. All rights reserved.
