@@ -1,0 +1,120 @@
+// This is your Prisma schema file
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Document este "clasa părinte"
+model Document {
+  nr_document         Int                  @id @default(autoincrement())
+  data                DateTime
+  // Relații de moștenire implementate prin one-to-one
+  consum              Consum?
+  cerereAprovizionare CerereAprovizionare?
+}
+
+model Angajati {
+  id_angajat      Int        @id @default(autoincrement())
+  nume_angajat    String
+  prenume_angajat String
+  functie         String
+  telefon         String
+  email           String
+  data_angajare   DateTime
+  Gestiune        Gestiune[]
+  Consum          Consum[]
+}
+
+// Consum "moștenește" din Document
+model Consum {
+  id_consum   Int           @id
+  valoare     Decimal
+  data        DateTime      @default(now())
+  id_sef      Int?
+  id_gestiune Int
+  document    Document      @relation(fields: [id_consum], references: [nr_document])
+  sef         Angajati?     @relation(fields: [id_sef], references: [id_angajat])
+  gestiune    Gestiune      @relation(fields: [id_gestiune], references: [id_gestiune])
+  liniiConsum LinieConsum[]
+}
+
+// CerereAprovizionare "moștenește" din Document
+model CerereAprovizionare {
+  id_cerere   Int                        @id
+  data        DateTime                   @default(now())
+  id_gestiune Int
+  valoare    Decimal
+  status      StatusCerere               @default(IN_ASTEPTARE)
+  document    Document                   @relation(fields: [id_cerere], references: [nr_document])
+  gestiune    Gestiune                   @relation(fields: [id_gestiune], references: [id_gestiune])
+  liniiCerere LinieCerereAprovizionare[]
+}
+
+// Restul modelelor rămân neschimbate
+model Stoc {
+  id_stoc          Int      @id @default(autoincrement())
+  id_bun           Int
+  id_gestiune      Int
+  stoc_init_lunar  Decimal?
+  stoc_actual      Decimal?
+  prag_minim       Decimal?
+  cantitate_optima Decimal?
+  gestiune         Gestiune @relation(fields: [id_gestiune], references: [id_gestiune])
+  bun              Bun      @relation(fields: [id_bun], references: [id_bun])
+}
+
+model Gestiune {
+  id_gestiune         Int                   @id @default(autoincrement())
+  denumire            String?
+  id_gestionar        Int?
+  angajatRelation     Angajati?             @relation(fields: [id_gestionar], references: [id_angajat])
+  stocuri             Stoc[]
+  consumuri           Consum[]
+  cereriAprovizionare CerereAprovizionare[]
+}
+
+model Bun {
+  id_bun                Int                        @id @default(autoincrement())
+  nume_bun              String
+  cantitate_disponibila Decimal
+  pret_unitar           Decimal
+  data_expirare         DateTime?
+  unitate_masura        String
+  stocuri               Stoc[]
+  liniiConsumuri        LinieConsum[]
+  liniiCereri           LinieCerereAprovizionare[]
+}
+
+model LinieConsum {
+  id_linie_consum    Int     @id @default(autoincrement())
+  id_consum          Int
+  id_bun             Int
+  cantitate_necesara Decimal
+  valoare            Decimal
+  cant_eliberata     Decimal
+  consum             Consum  @relation(fields: [id_consum], references: [id_consum])
+  bun                Bun     @relation(fields: [id_bun], references: [id_bun])
+}
+
+model LinieCerereAprovizionare {
+  id                  Int                 @id @default(autoincrement())
+  id_cerere           Int
+  id_bun              Int
+  cantitate           Decimal
+  valoare           Decimal
+  observatii          String?
+  cerereAprovizionare CerereAprovizionare @relation(fields: [id_cerere], references: [id_cerere])
+  bun                 Bun                 @relation(fields: [id_bun], references: [id_bun])
+}
+
+enum StatusCerere {
+  IN_ASTEPTARE @map("în așteptare")
+  APROBATA     @map("aprobată")
+  RESPINSA     @map("respinsă")
+}
