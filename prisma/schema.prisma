@@ -29,6 +29,7 @@ model Angajati {
   data_angajare   DateTime
   Gestiune        Gestiune[]
   Consum          Consum[]
+  livrare         Livrare[]
 }
 
 // Consum "moștenește" din Document
@@ -49,7 +50,7 @@ model CerereAprovizionare {
   id_cerere   Int                        @id
   data        DateTime                   @default(now())
   id_gestiune Int
-  valoare    Decimal
+  valoare     Decimal
   status      StatusCerere               @default(IN_ASTEPTARE)
   document    Document                   @relation(fields: [id_cerere], references: [nr_document])
   gestiune    Gestiune                   @relation(fields: [id_gestiune], references: [id_gestiune])
@@ -89,6 +90,7 @@ model Bun {
   stocuri               Stoc[]
   liniiConsumuri        LinieConsum[]
   liniiCereri           LinieCerereAprovizionare[]
+  liniiReceptie         Linie_receptie[]
 }
 
 model LinieConsum {
@@ -107,69 +109,59 @@ model LinieCerereAprovizionare {
   id_cerere           Int
   id_bun              Int
   cantitate           Decimal
-  valoare           Decimal
+  valoare             Decimal
   observatii          String?
   cerereAprovizionare CerereAprovizionare @relation(fields: [id_cerere], references: [id_cerere])
   bun                 Bun                 @relation(fields: [id_bun], references: [id_bun])
 }
+
 model Receptie {
-  id_receptie     Int               @id @default(autoincrement())
-  data            DateTime         @default(now())
-  valoare_totala  Decimal          @default(0.0)
-  linii_receptie  Linie_receptie[]
+  id_receptie    Int              @id @default(autoincrement())
+  data           DateTime         @default(now())
+  valoare_totala Decimal          @default(0.0)
+  linii_receptie Linie_receptie[]
 }
 
 model Linie_receptie {
-  id_linie_receptie     Int      @id @default(autoincrement())
-  id_bun                Int
-  id_receptie           Int
+  id_linie_receptie      Int                 @id @default(autoincrement())
+  id_bun                 Int
+  id_receptie            Int
   cantitate_receptionata Decimal
-  pret                  Decimal
-  status                StatusLinieReceptie @default(receptionata)
-  validat               Boolean  @default(false)
+  pret                   Decimal
+  status                 StatusLinieReceptie @default(receptionata)
+  validat                Boolean             @default(false)
 
   bun      Bun      @relation(fields: [id_bun], references: [id_bun])
   receptie Receptie @relation(fields: [id_receptie], references: [id_receptie])
 }
+
 enum StatusLinieReceptie {
   receptionata
   partiala
   respinsa
 }
 
-
-enum StatusCerere {
-  IN_ASTEPTARE
-  APROBATA
-  RESPINSA
-  FINALIZATA
-}
-
-
-
-
-
-
 model Comanda {
-  id_comanda   Int       @id @default(autoincrement())
-  data         DateTime
-  valoare      Decimal
-  id_client    Int
+  id_comanda Int      @id @default(autoincrement())
+  data       DateTime
+  valoare    Decimal
+  id_client  Int
 
-  client       Client     @relation(fields: [id_client], references: [id_client])
-  livrare      Livrare[]
+  client         Client          @relation(fields: [id_client], references: [id_client])
+  livrare        Livrare[]
+  linie_comanda  Linie_comanda[]
+  comanda_onsite Comenzi_onsite?
+  comanda_online Comenzi_online?
 }
-
 
 model Client {
-  id_client Int     @id @default(autoincrement())
+  id_client Int    @id @default(autoincrement())
   nume      String
   adresa    String
   telefon   String
 
-  comenzi   Comanda[]
+  comenzi Comanda[]
 }
-
 
 model Linie_comanda {
   id_linie_comanda Int     @id @default(autoincrement())
@@ -182,35 +174,32 @@ model Linie_comanda {
   produs  Produs  @relation(fields: [id_produs], references: [id_produs])
 }
 
-
 model Produs {
-  id_produs    Int             @id @default(autoincrement())
-  pret         Decimal
-  cantitate    Decimal
-  um           String
-  denumire     String
-  id_reteta    Int?
+  id_produs Int     @id @default(autoincrement())
+  pret      Decimal
+  cantitate Decimal
+  um        String
+  denumire  String
+  id_reteta Int?
 
-  reteta       Reteta?         @relation(fields: [id_reteta], references: [id_reteta])
+  // reteta       Reteta?         @relation(fields: [id_reteta], references: [id_reteta])
   liniiComanda Linie_comanda[]
 }
 
 model Masa {
-  id_masa Int     @id @default(autoincrement())
+  id_masa Int    @id @default(autoincrement())
   status  String
   nrMasa  Int
 
   comenziOnsite Comenzi_onsite[]
 }
 
-
-
 model Comenzi_onsite {
-  id_comanda Int   @id
+  id_comanda Int @id
   id_masa    Int
 
-  masa    Masa     @relation(fields: [id_masa], references: [id_masa])
-  comanda Comanda  @relation(fields: [id_comanda], references: [id_comanda])
+  masa    Masa    @relation(fields: [id_masa], references: [id_masa])
+  comanda Comanda @relation(fields: [id_comanda], references: [id_comanda])
 }
 
 model Comenzi_online {
@@ -221,15 +210,15 @@ model Comenzi_online {
 }
 
 model Livrare {
-  id_livrare     Int      @id @default(autoincrement())
+  id_livrare     Int           @id @default(autoincrement())
   id_comanda     Int
   adresa_livrare String
   id_angajat     Int
   data_livrare   DateTime
   status_livrare StatusLivrare
 
-  comanda Comanda   @relation(fields: [id_comanda], references: [id_comanda])
-  angajat Angajati  @relation(fields: [id_angajat], references: [id_angajat])
+  comanda Comanda  @relation(fields: [id_comanda], references: [id_comanda])
+  angajat Angajati @relation(fields: [id_angajat], references: [id_angajat])
 }
 
 enum StatusLivrare {
@@ -240,12 +229,9 @@ enum StatusLivrare {
   NECONFIRMATA       @map("Neconfirmată")
 }
 
-
-
-
-
 enum StatusCerere {
   IN_ASTEPTARE @map("în așteptare")
   APROBATA     @map("aprobată")
   RESPINSA     @map("respinsă")
+  FINALIZATA   @map("finalizată")
 }
