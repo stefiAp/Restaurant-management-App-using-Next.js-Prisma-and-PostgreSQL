@@ -1,16 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import  prisma  from "@/lib/prisma";
-
+import prisma from "@/lib/prisma";
 export async function GET(request: NextRequest) {
     try {
-        const liniiCerereAprovizionare = await prisma.linieCerereAprovizionare.findMany()
+        // Extragem parametrul id_cerere din URL, dacă există
+        const url = new URL(request.url);
+        const idCerere = url.searchParams.get('id_cerere');
 
-    return NextResponse.json(liniiCerereAprovizionare, { status: 200 });
+        // Construim query-ul cu sau fără filtru după id_cerere
+        const query: any = {
+            include: {
+                bun: true // Includerea datelor despre bunuri
+            }
+        };
+
+        // Adăugăm filtrul pentru id_cerere dacă există
+        if (idCerere) {
+            query.where = {
+                id_cerere: Number(idCerere)
+            };
+        }
+
+        const liniiCerereAprovizionare = await prisma.linieCerereAprovizionare.findMany(query);
+
+        return NextResponse.json(liniiCerereAprovizionare, { status: 200 });
     } catch (error) {
         console.error("Error fetching data:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-        
     }
 }
 
@@ -20,7 +36,7 @@ export async function POST(request: NextRequest) {
 
         const { id_cerere, id_bun, cantitate, observatii } = data;
 
-        if (!id_cerere || !id_bun || !cantitate || !observatii ) {
+        if (!id_cerere || !id_bun || !cantitate || !observatii) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
@@ -33,7 +49,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Bun not found" }, { status: 404 });
         }
 
-        const valoare = Number( bun.pret_unitar) * cantitate;
+        const valoare = Number(bun.pret_unitar) * cantitate;
 
         const newLinieCerereAprovizionare = await prisma.linieCerereAprovizionare.create({
             data: {
@@ -49,8 +65,8 @@ export async function POST(request: NextRequest) {
             where: {
                 id_cerere: id_cerere,
             },
-            data:{
-                valoare:{
+            data: {
+                valoare: {
                     increment: valoare,
                 }
             }
@@ -60,11 +76,11 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Cerere not found" }, { status: 404 });
         }
 
-        if(cerere.status === "APROBATA") {
+        if (cerere.status === "APROBATA") {
             await prisma.bun.update({
                 where: {
                     id_bun: id_bun,
-                   
+
                 },
                 data: {
                     cantitate_disponibila: {
